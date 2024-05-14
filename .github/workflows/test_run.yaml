@@ -1,0 +1,29 @@
+name: test-run
+
+on: 
+  push:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: 'The commit will be tested by children workflows'
+        required: true
+        default: 'main'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: 
+        rust-toolchain: [nightly, nightly-2024-05-02]
+    env:
+      RUSTUP_TOOLCHAIN: ${{ matrix.rust-toolchain }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ matrix.rust-toolchain }}
+          components: rust-src, clippy, rustfmt
+          targets: x86_64-unknown-none
+      - name: Run tests
+        run: cargo build --target x86_64-unknown-none
